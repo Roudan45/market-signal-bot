@@ -2,20 +2,13 @@ name: Market Signal Bot
 
 on:
   schedule:
-    # 每15分钟运行一次
-    # 悉尼冬令时（UTC+10）覆盖范围：
-    # 下午6pm（UTC 08:00）到次日上午11am（UTC 01:00）
-    # 即 UTC 08:00 到次日 01:00
-   - cron: "*/15 * * * *"
-
-  # 允许手动触发（测试用）
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
 
-    # 给予写入仓库的权限（用于更新 seen_ids.json）
     permissions:
       contents: write
 
