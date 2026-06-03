@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from anthropic import Anthropic
 
 # ── 配置 ──────────────────────────────────────────────
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_WSJ_DIGEST_API_KEY"]
+ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 FINNHUB_API_KEY = os.environ.get("FINNHUB_API_KEY", "")
