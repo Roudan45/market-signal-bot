@@ -1,0 +1,48 @@
+name: Market Signal Bot
+
+on:
+  schedule:
+    # 每15分钟运行一次
+    # 悉尼冬令时（UTC+10）覆盖范围：
+    # 下午6pm（UTC 08:00）到次日上午11am（UTC 01:00）
+    # 即 UTC 08:00 到次日 01:00
+   - cron: "*/15 * * * *"
+
+  # 允许手动触发（测试用）
+  workflow_dispatch:
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    # 给予写入仓库的权限（用于更新 seen_ids.json）
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic requests feedparser
+
+      - name: Run signal bot
+        env:
+          ANTHROPIC_WSJ_DIGEST_API_KEY: ${{ secrets.ANTHROPIC_WSJ_DIGEST_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+        run: python src/main.py
+
+      - name: Commit updated seen_ids.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_ids.json
+          git diff --staged --quiet || git commit -m "chore: update seen_ids [skip ci]"
+          git push
