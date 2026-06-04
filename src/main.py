@@ -170,6 +170,7 @@ DIRECTION_EMOJI = {
 }
 
 SCORE_EMOJI = {
+    10: "🔥🔥",
     9: "🔥🔥",
     8: "🔥",
     7: "⚡",
@@ -180,9 +181,11 @@ def format_message(article: dict, analysis: dict) -> str:
     direction = analysis["direction"]
     sectors = "、".join(analysis.get("sectors", []))
     tickers = " ".join([f"${t}" for t in analysis.get("tickers", [])])
-    reason = analysis.get("reason", "")
+    what = analysis.get("what", "")
+    why = analysis.get("why", "")
+    verify = analysis.get("verify", "")
 
-    score_icon = SCORE_EMOJI.get(score, "⚡") if score >= 9 else SCORE_EMOJI.get(score, "⚡")
+    score_icon = SCORE_EMOJI.get(score, "⚡")
     direction_icon = DIRECTION_EMOJI.get(direction, "🟡")
 
     lines = [
@@ -190,12 +193,15 @@ def format_message(article: dict, analysis: dict) -> str:
         f"",
         f"*{article['title']}*",
         f"",
-        f"📌 {reason}",
+        f"📌 *发生了什么：* {what}",
+        f"⚡ *为什么重要：* {why}",
     ]
-    if sectors:
-        lines.append(f"🏭 板块：{sectors}")
     if tickers:
-        lines.append(f"📈 股票：{tickers}")
+        lines.append(f"🎯 *关注标的：* {tickers}")
+    if sectors:
+        lines.append(f"🏭 *板块：* {sectors}")
+    if verify:
+        lines.append(f"⚠️ *开盘后确认：* {verify}")
     lines.append(f"")
     lines.append(f"🔗 [原文]({article['url']}) | 来源：{article['source']}")
 
