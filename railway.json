@@ -1,0 +1,6 @@
+{
+  "deploy": {
+    "startCommand": "python src/main.py",
+    "restartPolicyType": "never"
+  }
+}
