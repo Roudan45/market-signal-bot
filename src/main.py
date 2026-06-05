@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import hashlib
 import requests
@@ -33,6 +34,7 @@ RSS_FEEDS = [
         "url": "https://feeds.marketwatch.com/marketwatch/topstories/"
     },
 ]
+
 # ── 读写去重记录 ───────────────────────────────────────
 def load_seen_ids() -> set:
     if os.path.exists(SEEN_IDS_FILE):
@@ -49,6 +51,14 @@ def save_seen_ids(seen: set):
 
 def make_id(title: str, source: str) -> str:
     return hashlib.md5(f"{source}::{title}".encode()).hexdigest()
+
+# ── 文本清理（防止特殊字符破坏JSON）─────────────────────
+def clean_text(text: str) -> str:
+    text = text.replace('"', "'")
+    text = text.replace('\n', ' ').replace('\r', ' ')
+    text = text.replace('\\', '/')
+    text = re.sub(r'[\x00-\x1f\x7f]', '', text)
+    return text.strip()
 
 # ── 抓取新闻 ──────────────────────────────────────────
 def fetch_rss(feed: dict) -> list[dict]:
@@ -132,10 +142,12 @@ def analyze_with_claude(articles: list[dict]) -> list[dict]:
     if not articles:
         return []
 
-    # 构建新闻列表文本
+    # 构建新闻列表文本，清理特殊字符
     news_text = ""
     for i, a in enumerate(articles):
-        news_text += f"\n[{i}] 来源：{a['source']}\n标题：{a['title']}\n摘要：{a['summary']}\n"
+        title = clean_text(a['title'])
+        summary = clean_text(a['summary'])
+        news_text += f"\n[{i}] 来源：{a['source']}\n标题：{title}\n摘要：{summary}\n"
 
     try:
         response = client.messages.create(
@@ -149,12 +161,10 @@ def analyze_with_claude(articles: list[dict]) -> list[dict]:
         )
         raw = response.content[0].text.strip()
 
-        # 清理可能的markdown代码块
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        raw = raw.strip()
+        # 提取```json ... ```之间的内容
+        match = re.search(r'```(?:json)?\s*([\s\S]*?)```', raw)
+        if match:
+            raw = match.group(1).strip()
 
         results = json.loads(raw)
         return results
