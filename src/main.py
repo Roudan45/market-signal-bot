@@ -244,7 +244,7 @@ def main():
     print(f"抓取到 {len(all_articles)} 条新闻")
 
     # 3. 过滤已读
-    new_articles = all_articles
+    new_articles = [a for a in all_articles if a["id"] not in seen_ids]
     print(f"其中新增 {len(new_articles)} 条")
 
     if not new_articles:
